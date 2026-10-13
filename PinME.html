@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="color-scheme" content="light" />
+<title>PinMe — find your people, nearby</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   PinMe — design system
+   Subject: a location-led dating app. Signature motif: the map pin.
+   "PinMe" = pin me on your map / pin the people you like.
+   Direction: warm sunset gradient (coral -> rose -> violet) on a clean
+   warm-white canvas. Pin-heart as the love action. Restraint elsewhere.
+   Type: Bricolage Grotesque (display) + DM Sans (body).
+   ===================================================================== */
+:root{
+  --ink:#2B2230;        /* primary text, deep warm plum-black */
+  --ink-2:#574B5E;      /* secondary text */
+  --ink-3:#8E8295;      /* tertiary / hints */
+  --bg:#FAF6F3;         /* page canvas, warm soft white */
+  --surface:#FFFFFF;
+  --surface-2:#F6EFEC;  /* subtle filled fields */
+  --line:#ECE3E8;
+  --line-2:#E0D5DC;
+
+  --coral:#FF5068;      /* primary accent / the pin / like */
+  --coral-700:#E73a52;
+  --coral-50:#FFE9EC;
+  --gold:#FFB454;       /* reserved: super pin only */
+  --gold-700:#F0972E;
+
+  --grad-sunset:linear-gradient(135deg,#FF7E5F 0%,#FF3D77 50%,#C840C8 100%);
+  --grad-sunset-soft:linear-gradient(135deg,#FF9A6C 0%,#FF5E8A 55%,#B26BE0 100%);
+  --grad-gold:linear-gradient(135deg,#FFD66B 0%,#FF8A5B 100%);
+
+  --shadow-card:0 26px 60px -22px rgba(43,34,48,.55), 0 8px 22px -10px rgba(43,34,48,.22);
+  --shadow-soft:0 12px 34px -14px rgba(43,34,48,.28);
+  --shadow-fab:0 10px 24px -8px rgba(43,34,48,.35);
+
+  --r-xl:34px; --r-lg:26px; --r-md:18px; --r-sm:12px; --r-pill:999px;
+
+  --font-display:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-body:"DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+  --app-w:440px;
+  --nav-h:74px;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* ---- stage (desktop backdrop) + phone panel ------------------------ */
+.stage{
+  min-height:100dvh;
+  display:flex; align-items:center; justify-content:center;
+  padding:0;
+  position:relative; overflow:hidden;
+  background:
+    radial-gradient(1100px 620px at 78% -8%, rgba(255,94,138,.16), transparent 60%),
+    radial-gradient(900px 600px at 8% 108%, rgba(157,78,221,.16), transparent 60%),
+    var(--bg);
+}
+.app{
+  position:relative;
+  width:min(var(--app-w),100%);
+  height:100dvh;
+  background:var(--surface);
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  isolation:isolate;
+}
+@media (min-width:480px){
+  .stage{padding:28px;}
+  .app{
+    height:min(896px, calc(100dvh - 56px));
+    border-radius:40px;
+    box-shadow:var(--shadow-card);
+    border:1px solid rgba(43,34,48,.06);
+  }
+}
+
+/* ---- generic ------------------------------------------------------- */
+button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, .chip:focus-visible{
+  outline:3px solid rgba(255,80,104,.55); outline-offset:2px; border-radius:8px;
+}
+img{display:block; max-width:100%;}
+::selection{background:rgba(255,80,104,.22);}
+
+.screen{flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;}
+.scroll{flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+.scroll::-webkit-scrollbar{width:0; height:0;}
+
+.eyebrow{
+  font-family:var(--font-body); font-weight:600; font-size:11px;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3);
+}
+.muted{color:var(--ink-2);}
+.center{text-align:center;}
+
+/* ---- top bar ------------------------------------------------------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 20px 12px; gap:12px; flex-shrink:0;
+}
+.brand{display:flex; align-items:center; gap:9px;}
+.brand .logo{width:30px; height:30px; color:var(--coral); filter:drop-shadow(0 4px 8px rgba(255,80,104,.35));}
+.brand .word{font-family:var(--font-display); font-weight:800; font-size:22px; letter-spacing:-.02em;}
+.brand .word b{color:var(--coral);}
+.topbar h2{font-family:var(--font-display); font-weight:800; font-size:24px; letter-spacing:-.02em; margin:0;}
+.iconbtn{
+  width:42px; height:42px; border-radius:var(--r-pill);
+  display:grid; place-items:center; color:var(--ink-2);
+  background:var(--surface-2); transition:transform .15s, background .15s;
+}
+.iconbtn:hover{background:var(--line); color:var(--ink);}
+.iconbtn:active{transform:scale(.92);}
+.iconbtn svg{width:21px; height:21px;}
+
+/* ---- bottom nav ---------------------------------------------------- */
+.nav{
+  flex-shrink:0; height:var(--nav-h);
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--line);
+  background:rgba(255,255,255,.86); backdrop-filter:blur(14px);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.nav button{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  color:var(--ink-3); font-size:10.5px; font-weight:600; letter-spacing:.02em;
+  position:relative; transition:color .15s;
+}
+.nav button svg{width:24px; height:24px;}
+.nav button[aria-current="true"]{color:var(--coral);}
+.nav button[aria-current="true"]::before{
+  content:""; position:absolute; top:8px; width:5px; height:5px; border-radius:50%;
+  background:var(--coral); box-shadow:0 0 0 4px rgba(255,80,104,.16);
+}
+.nav .badge{
+  position:absolute; top:8px; left:calc(50% + 9px);
+  min-width:17px; height:17px; padding:0 4px; border-radius:9px;
+  background:var(--coral); color:#fff; font-size:10px; font-weight:700;
+  display:grid; place-items:center; box-shadow:0 0 0 2px var(--surface);
+}
+
+/* =====================================================================
+   ONBOARDING
+   ===================================================================== */
+.onboard{display:flex; flex-direction:column; height:100%;}
+.onboard .scroll{padding:0 24px 28px;}
+.hero{
+  position:relative; padding:46px 24px 30px; margin:0 -24px 6px;
+  overflow:hidden; text-align:center;
+}
+.hero .grid{
+  position:absolute; inset:0; opacity:.5;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(43,34,48,.10) 1.4px, transparent 0);
+  background-size:26px 26px;
+  -webkit-mask-image:radial-gradient(120% 80% at 50% 30%, #000 35%, transparent 78%);
+          mask-image:radial-gradient(120% 80% at 50% 30%, #000 35%, transparent 78%);
+}
+.pin-drop{position:relative; width:96px; height:120px; margin:0 auto 14px;}
+.pin-drop .pin{
+  position:absolute; left:50%; top:0; transform:translateX(-50%);
+  width:74px; height:74px; color:var(--coral);
+  filter:drop-shadow(0 14px 20px rgba(255,80,104,.4));
+  animation:drop .9s cubic-bezier(.2,1.3,.4,1) both;
+}
+.pin-drop .ring{
+  position:absolute; left:50%; bottom:6px; transform:translateX(-50%);
+  width:54px; height:14px; border-radius:50%;
+  background:radial-gradient(closest-side, rgba(43,34,48,.16), transparent);
+  animation:ripple 2.6s ease-out .8s infinite;
+}
+@keyframes drop{0%{transform:translateX(-50%) translateY(-120px) scale(.6); opacity:0;}
+  60%{opacity:1;} 80%{transform:translateX(-50%) translateY(6px) scale(1.04);}
+  100%{transform:translateX(-50%) translateY(0) scale(1);}}
+@keyframes ripple{0%{transform:translateX(-50%) scale(.6); opacity:.7;}
+  100%{transform:translateX(-50%) scale(1.7); opacity:0;}}
+.hero h1{
+  font-family:var(--font-display); font-weight:800; font-size:34px; line-height:1.02;
+  letter-spacing:-.03em; margin:0 0 8px; position:relative;
+}
+.hero h1 .grad{
+  background:var(--grad-sunset); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero p{margin:0 auto; max-width:300px; color:var(--ink-2); font-size:15px; line-height:1.5; position:relative;}
+
+.field{margin-top:18px;}
+.field > label{display:block; font-weight:600; font-size:13.5px; margin-bottom:8px;}
+.field .hint{font-weight:400; color:var(--ink-3); font-size:12px;}
+.input{
+  width:100%; padding:14px 16px; border-radius:var(--r-md);
+  background:var(--surface-2); border:1.5px solid transparent;
+  font-family:inherit; font-size:15.5px; color:var(--ink); transition:border-color .15s, background .15s;
+}
+.input::placeholder{color:var(--ink-3);}
+.input:focus{outline:none; border-color:var(--coral); background:#fff;}
+textarea.input{resize:none; min-height:84px; line-height:1.45;}
+
+.seg{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px;}
+.seg button{
+  padding:12px 8px; border-radius:var(--r-md); background:var(--surface-2);
+  border:1.5px solid transparent; font-weight:600; font-size:14px; color:var(--ink-2);
+  transition:all .15s;
+}
+.seg button[aria-pressed="true"]{
+  background:#fff; color:var(--ink); border-color:var(--coral);
+  box-shadow:0 0 0 3px rgba(255,80,104,.12);
+}
+
+.photo-pick{display:flex; align-items:center; gap:16px;}
+.photo-pick .preview{
+  width:88px; height:88px; border-radius:24px; overflow:hidden; flex-shrink:0;
+  display:grid; place-items:center; position:relative; box-shadow:var(--shadow-soft);
+}
+.photo-pick .preview img{width:100%; height:100%; object-fit:cover;}
+.photo-pick .preview .ava-emoji{position:absolute; right:6px; bottom:6px; font-size:20px;}
+.photo-pick .meta{flex:1;}
+.btn-ghost{
+  padding:11px 16px; border-radius:var(--r-pill); background:var(--surface-2);
+  font-weight:600; font-size:13.5px; color:var(--ink); transition:background .15s, transform .12s;
+}
+.btn-ghost:hover{background:var(--line);} .btn-ghost:active{transform:scale(.96);}
+
+.chips{display:flex; flex-wrap:wrap; gap:8px;}
+.chip{
+  padding:9px 14px; border-radius:var(--r-pill); background:var(--surface-2);
+  border:1.5px solid transparent; font-weight:600; font-size:13px; color:var(--ink-2);
+  transition:all .14s; user-select:none;
+}
+.chip[aria-pressed="true"]{background:var(--coral-50); color:var(--coral-700); border-color:rgba(255,80,104,.4);}
+.chip:active{transform:scale(.95);}
+
+.btn-primary{
+  width:100%; padding:16px; border-radius:var(--r-pill);
+  background:var(--grad-sunset); color:#fff; font-family:var(--font-display);
+  font-weight:700; font-size:16px; letter-spacing:.01em;
+  box-shadow:0 14px 30px -10px rgba(255,61,119,.6); transition:transform .14s, box-shadow .2s, filter .2s;
+}
+.btn-primary:hover{filter:brightness(1.03);} .btn-primary:active{transform:scale(.985);}
+.btn-primary:disabled{filter:grayscale(.5) opacity(.6); box-shadow:none; cursor:not-allowed;}
+.formerr{color:var(--coral-700); font-size:13px; font-weight:600; margin-top:12px; text-align:center; min-height:18px;}
+
+.foot-note{text-align:center; color:var(--ink-3); font-size:11.5px; margin-top:14px; line-height:1.5;}
+
+/* =====================================================================
+   DISCOVER — card deck
+   ===================================================================== */
+.deck-wrap{flex:1; min-height:0; padding:6px 20px 0; display:flex; flex-direction:column;}
+.deck{position:relative; flex:1; min-height:0; margin-bottom:10px;}
+.card{
+  position:absolute; inset:0; border-radius:var(--r-xl); overflow:hidden;
+  background:var(--ink); box-shadow:var(--shadow-card);
+  transform-origin:center bottom; will-change:transform;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  user-select:none; touch-action:pan-y;
+}
+.card .bg{position:absolute; inset:0;}
+.card .bg img{width:100%; height:100%; object-fit:cover;}
+.card .ava-fill{position:absolute; inset:0; display:grid; place-items:center;}
+.card .ava-fill .big-emoji{font-size:96px; filter:drop-shadow(0 8px 18px rgba(0,0,0,.25));}
+.card .scrim{
+  position:absolute; left:0; right:0; bottom:0; height:64%;
+  background:linear-gradient(to top, rgba(20,12,24,.92) 4%, rgba(20,12,24,.55) 40%, transparent 100%);
+}
+.card .info{position:relative; padding:22px 22px 24px; color:#fff;}
+.card .nameline{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
+.card .nameline h3{font-family:var(--font-display); font-weight:800; font-size:28px; letter-spacing:-.02em; margin:0; line-height:1;}
+.card .nameline .age{font-size:23px; font-weight:500; opacity:.92;}
+.card .nameline .ver-dot{width:8px; height:8px; border-radius:50%; background:#5fd0a8; align-self:center; box-shadow:0 0 0 3px rgba(95,208,168,.3);}
+.card .dist{
+  display:inline-flex; align-items:center; gap:5px; margin-top:9px;
+  font-size:13px; font-weight:600; color:rgba(255,255,255,.92);
+}
+.card .dist svg{width:14px; height:14px;}
+.card .bio{margin:11px 0 12px; font-size:14.5px; line-height:1.45; color:rgba(255,255,255,.92); max-width:40ch;}
+.card .tags{display:flex; flex-wrap:wrap; gap:7px;}
+.card .tags span{
+  font-size:12px; font-weight:600; padding:6px 11px; border-radius:var(--r-pill);
+  background:rgba(255,255,255,.16); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.18);
+}
+.card .active-now{position:absolute; top:18px; left:18px; display:flex; align-items:center; gap:6px;
+  font-size:11.5px; font-weight:700; color:#fff; padding:6px 11px; border-radius:var(--r-pill);
+  background:rgba(20,12,24,.42); backdrop-filter:blur(8px);}
+.card .active-now i{width:7px; height:7px; border-radius:50%; background:#5fd0a8; display:inline-block;}
+
+/* swipe stamps */
+.stamp{
+  position:absolute; top:34px; padding:8px 16px; border-radius:12px;
+  font-family:var(--font-display); font-weight:800; font-size:26px; letter-spacing:.04em;
+  border:4px solid; opacity:0; transition:opacity .08s; pointer-events:none;
+}
+.stamp.like{right:24px; transform:rotate(14deg); color:#5fd0a8; border-color:#5fd0a8;}
+.stamp.nope{left:24px; transform:rotate(-14deg); color:#ff6b6b; border-color:#ff6b6b;}
+.stamp.super{left:50%; top:50%; transform:translate(-50%,-50%) rotate(-8deg); color:var(--gold); border-color:var(--gold); font-size:30px;}
+
+.deck-empty{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:40px; border-radius:var(--r-xl); border:1.5px dashed var(--line-2);
+}
+.deck-empty .ic{width:64px; height:64px; border-radius:24px; display:grid; place-items:center;
+  background:var(--coral-50); color:var(--coral); margin-bottom:16px;}
+.deck-empty .ic svg{width:30px; height:30px;}
+.deck-empty h3{font-family:var(--font-display); font-weight:700; font-size:20px; margin:0 0 8px;}
+.deck-empty p{color:var(--ink-2); font-size:14px; max-width:240px; line-height:1.5; margin:0 0 18px;}
+
+/* action bar */
+.actions{display:flex; align-items:center; justify-content:center; gap:18px; padding:6px 0 18px;}
+.fab{
+  border-radius:var(--r-pill); display:grid; place-items:center;
+  background:#fff; box-shadow:var(--shadow-fab); transition:transform .14s, box-shadow .2s;
+}
+.fab:active{transform:scale(.9);}
+.fab svg{width:26px; height:26px;}
+.fab.pass{width:62px; height:62px; color:var(--ink-2); border:1.5px solid var(--line);}
+.fab.pass:hover{color:#ff6b6b; border-color:#ffd2d2;}
+.fab.like{width:76px; height:76px; color:#fff; background:var(--grad-sunset); box-shadow:0 14px 28px -8px rgba(255,61,119,.6);}
+.fab.like svg{width:36px; height:36px;}
+.fab.super{width:62px; height:62px; color:#fff; background:var(--grad-gold); box-shadow:0 12px 24px -8px rgba(240,151,46,.5);}
+.fab.super svg{width:24px; height:24px;}
+
+/* =====================================================================
+   LIKES / MATCHES grid
+   ===================================================================== */
+.pad{padding:4px 20px 24px;}
+.section-h{display:flex; align-items:center; gap:8px; margin:20px 0 12px;}
+.section-h h3{font-family:var(--font-display); font-weight:700; font-size:16px; margin:0;}
+.section-h .count{font-size:12px; font-weight:700; color:var(--coral); background:var(--coral-50); padding:2px 9px; border-radius:var(--r-pill);}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:13px;}
+.mcard{
+  border-radius:var(--r-lg); overflow:hidden; position:relative; aspect-ratio:3/4;
+  box-shadow:var(--shadow-soft); cursor:pointer; transition:transform .14s;
+}
+.mcard:active{transform:scale(.97);}
+.mcard .bg{position:absolute; inset:0;}
+.mcard .bg img{width:100%; height:100%; object-fit:cover;}
+.mcard .ava-fill{position:absolute; inset:0; display:grid; place-items:center;}
+.mcard .ava-fill .big-emoji{font-size:52px;}
+.mcard .scrim{position:absolute; inset:0; background:linear-gradient(to top, rgba(20,12,24,.85), transparent 55%);}
+.mcard .label{position:absolute; left:0; right:0; bottom:0; padding:12px; color:#fff;}
+.mcard .label b{font-family:var(--font-display); font-weight:700; font-size:16px;}
+.mcard .label .sub{font-size:11.5px; opacity:.86; margin-top:1px;}
+.mcard .newtag{position:absolute; top:10px; left:10px; font-size:10px; font-weight:800; letter-spacing:.06em;
+  color:#fff; background:var(--coral); padding:3px 8px; border-radius:var(--r-pill); text-transform:uppercase;}
+
+.empty{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:60px 32px; color:var(--ink-2);
+}
+.empty .ic{width:66px; height:66px; border-radius:24px; display:grid; place-items:center;
+  background:var(--surface-2); color:var(--ink-3); margin-bottom:18px;}
+.empty .ic svg{width:30px; height:30px;}
+.empty h3{font-family:var(--font-display); font-weight:700; font-size:19px; color:var(--ink); margin:0 0 8px;}
+.empty p{font-size:14px; max-width:250px; line-height:1.5; margin:0 0 18px;}
+.btn-sm{padding:11px 20px; border-radius:var(--r-pill); background:var(--grad-sunset); color:#fff;
+  font-weight:700; font-size:14px; font-family:var(--font-display);}
+
+/* =====================================================================
+   CHATS list + conversation
+   ===================================================================== */
+.chat-row{display:flex; align-items:center; gap:13px; padding:12px 20px; cursor:pointer; transition:background .12s;}
+.chat-row:hover{background:var(--surface-2);}
+.chat-row:active{background:var(--line);}
+.ava{border-radius:50%; overflow:hidden; flex-shrink:0; position:relative; display:grid; place-items:center;}
+.ava img{width:100%; height:100%; object-fit:cover;}
+.ava .em{position:absolute; font-size:.9em;}
+.ava.s56{width:56px; height:56px;}
+.ava.s44{width:44px; height:44px;}
+.ava.s36{width:36px; height:36px;}
+.chat-row .body{flex:1; min-width:0;}
+.chat-row .top{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+.chat-row .top b{font-family:var(--font-display); font-weight:700; font-size:15.5px;}
+.chat-row .top time{font-size:11.5px; color:var(--ink-3); flex-shrink:0;}
+.chat-row .prev{font-size:13.5px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;}
+.chat-row.unread .prev{color:var(--ink); font-weight:600;}
+.chat-row .unread-dot{width:9px; height:9px; border-radius:50%; background:var(--coral); flex-shrink:0;}
+
+.newmatches{padding:6px 20px 8px;}
+.newmatches .rail{display:flex; gap:14px; overflow-x:auto; padding:6px 0 4px;}
+.newmatches .rail::-webkit-scrollbar{display:none;}
+.nm{display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; cursor:pointer; width:64px;}
+.nm .ava{box-shadow:0 0 0 2.5px var(--coral), 0 0 0 5px var(--surface);}
+.nm span{font-size:11px; font-weight:600; max-width:64px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+.divider{height:1px; background:var(--line); margin:6px 20px;}
+
+/* conversation */
+.conv{display:flex; flex-direction:column; height:100%;}
+.conv-head{display:flex; align-items:center; gap:11px; padding:14px 16px; border-bottom:1px solid var(--line); flex-shrink:0;}
+.conv-head .back{width:38px; height:38px; border-radius:50%; display:grid; place-items:center; color:var(--ink); background:var(--surface-2);}
+.conv-head .who b{font-family:var(--font-display); font-weight:700; font-size:16px; display:block; line-height:1.1;}
+.conv-head .who .st{font-size:11.5px; color:#3fae7c; font-weight:600;}
+.conv-scroll{flex:1; min-height:0; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:9px;}
+.conv-scroll::-webkit-scrollbar{display:none;}
+.day-sep{align-self:center; font-size:11px; font-weight:600; color:var(--ink-3); background:var(--surface-2); padding:4px 12px; border-radius:var(--r-pill); margin:4px 0;}
+.bubble{max-width:78%; padding:11px 15px; font-size:14.5px; line-height:1.4; border-radius:20px; word-wrap:break-word;}
+.bubble.them{align-self:flex-start; background:var(--surface-2); color:var(--ink); border-bottom-left-radius:7px;}
+.bubble.me{align-self:flex-end; background:var(--grad-sunset); color:#fff; border-bottom-right-radius:7px;}
+.bubble .t{display:block; font-size:10px; opacity:.6; margin-top:4px; text-align:right;}
+.match-banner{align-self:center; text-align:center; margin:6px 0 14px; color:var(--ink-2); font-size:12.5px;}
+.match-banner .ava{margin:0 auto 8px;}
+.match-banner b{color:var(--ink);}
+.typing{align-self:flex-start; background:var(--surface-2); padding:13px 16px; border-radius:20px; border-bottom-left-radius:7px; display:flex; gap:4px;}
+.typing i{width:7px; height:7px; border-radius:50%; background:var(--ink-3); animation:tdot 1.2s infinite;}
+.typing i:nth-child(2){animation-delay:.2s;} .typing i:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,60%,100%{opacity:.3; transform:translateY(0);}30%{opacity:1; transform:translateY(-3px);}}
+.composer{display:flex; align-items:flex-end; gap:9px; padding:12px 14px; border-top:1px solid var(--line); flex-shrink:0; padding-bottom:max(12px, env(safe-area-inset-bottom));}
+.composer textarea{flex:1; resize:none; max-height:110px; padding:12px 16px; border-radius:22px; background:var(--surface-2);
+  border:1.5px solid transparent; font-family:inherit; font-size:15px; line-height:1.35;}
+.composer textarea:focus{outline:none; border-color:var(--coral); background:#fff;}
+.composer .send{width:46px; height:46px; border-radius:50%; flex-shrink:0; background:var(--grad-sunset); color:#fff;
+  display:grid; place-items:center; box-shadow:var(--shadow-fab); transition:transform .12s, filter .2s;}
+.composer .send:active{transform:scale(.9);} .composer .send:disabled{filter:grayscale(.6) opacity(.5);}
+.composer .send svg{width:21px; height:21px;}
+
+/* =====================================================================
+   PROFILE
+   ===================================================================== */
+.prof-head{position:relative; padding:8px 20px 0; text-align:center;}
+.prof-card{padding:28px 20px 24px; text-align:center;}
+.prof-card .ava{margin:0 auto 16px; box-shadow:var(--shadow-card);}
+.prof-card h2{font-family:var(--font-display); font-weight:800; font-size:26px; letter-spacing:-.02em; margin:0;}
+.prof-card .loc{display:inline-flex; align-items:center; gap:5px; color:var(--ink-2); font-size:14px; margin-top:5px;}
+.prof-card .loc svg{width:14px; height:14px; color:var(--coral);}
+.prof-card .bio{color:var(--ink-2); font-size:14.5px; line-height:1.5; margin:14px auto 0; max-width:300px;}
+.stats{display:flex; gap:12px; padding:0 20px 8px;}
+.stat{flex:1; background:var(--surface-2); border-radius:var(--r-lg); padding:16px 12px; text-align:center;}
+.stat b{display:block; font-family:var(--font-display); font-weight:800; font-size:24px; color:var(--coral);}
+.stat span{font-size:11.5px; color:var(--ink-2); font-weight:600; letter-spacing:.02em;}
+.prof-tags{padding:18px 20px 8px;}
+.prof-tags .chips .chip[aria-pressed]{pointer-events:none;}
+.row-btn{display:flex; align-items:center; gap:13px; width:100%; padding:15px 20px; text-align:left; transition:background .12s;}
+.row-btn:hover{background:var(--surface-2);} .row-btn:active{background:var(--line);}
+.row-btn .ic{width:38px; height:38px; border-radius:12px; background:var(--surface-2); display:grid; place-items:center; color:var(--ink-2); flex-shrink:0;}
+.row-btn .ic svg{width:19px; height:19px;}
+.row-btn .lbl{flex:1;} .row-btn .lbl b{display:block; font-weight:600; font-size:14.5px;} .row-btn .lbl span{font-size:12.5px; color:var(--ink-3);}
+.row-btn .chev{color:var(--ink-3);}
+.row-btn.danger .ic{background:var(--coral-50); color:var(--coral);} .row-btn.danger .lbl b{color:var(--coral-700);}
+
+/* =====================================================================
+   MATCH celebration modal
+   ===================================================================== */
+.modal-bg{position:absolute; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+  background:rgba(20,12,24,.5); backdrop-filter:blur(8px); padding:28px; animation:fade .25s both;}
+@keyframes fade{from{opacity:0;}to{opacity:1;}}
+.match-modal{
+  position:relative; width:100%; max-width:340px; border-radius:var(--r-xl); overflow:hidden;
+  background:var(--grad-sunset); color:#fff; text-align:center; padding:40px 28px 28px;
+  box-shadow:0 40px 80px -20px rgba(0,0,0,.5); animation:pop .4s cubic-bezier(.2,1.3,.4,1) both;
+}
+@keyframes pop{from{transform:scale(.8); opacity:0;}to{transform:scale(1); opacity:1;}}
+.match-modal .spark{position:absolute; inset:0; opacity:.5; pointer-events:none;
+  background:radial-gradient(circle at 30% 20%, rgba(255,255,255,.4), transparent 40%),
+             radial-gradient(circle at 80% 70%, rgba(255,255,255,.25), transparent 35%);}
+.match-modal .avas{display:flex; justify-content:center; margin-bottom:22px; position:relative;}
+.match-modal .avas .ava{width:92px; height:92px; box-shadow:0 0 0 4px rgba(255,255,255,.9);}
+.match-modal .avas .ava:nth-child(2){margin-left:-22px;}
+.match-modal .avas .joint{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2;
+  width:42px; height:42px; border-radius:50%; background:#fff; display:grid; place-items:center; color:var(--coral);
+  box-shadow:0 8px 18px rgba(0,0,0,.25); animation:beat 1.4s ease-in-out infinite;}
+.match-modal .avas .joint svg{width:24px; height:24px;}
+@keyframes beat{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.16);}}
+.match-modal h2{font-family:var(--font-display); font-weight:800; font-size:32px; letter-spacing:-.02em; margin:0 0 8px;}
+.match-modal p{font-size:15px; opacity:.95; line-height:1.5; margin:0 0 26px; max-width:260px; margin-inline:auto;}
+.match-modal .btn-solid{width:100%; padding:15px; border-radius:var(--r-pill); background:#fff; color:var(--coral-700);
+  font-family:var(--font-display); font-weight:700; font-size:15.5px; margin-bottom:10px; transition:transform .12s;}
+.match-modal .btn-solid:active{transform:scale(.97);}
+.match-modal .btn-line{width:100%; padding:13px; border-radius:var(--r-pill); background:rgba(255,255,255,.16);
+  color:#fff; font-weight:600; font-size:14.5px; transition:background .15s;}
+.match-modal .btn-line:hover{background:rgba(255,255,255,.26);}
+.confetti{position:absolute; top:-10px; width:9px; height:14px; border-radius:2px; pointer-events:none; animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(560px) rotate(540deg); opacity:0;}}
+
+/* toast */
+.toast{position:absolute; bottom:calc(var(--nav-h) + 16px); left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:#fff; padding:12px 20px; border-radius:var(--r-pill); font-size:13.5px; font-weight:600;
+  box-shadow:var(--shadow-soft); z-index:60; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; white-space:nowrap;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.05ms !important;}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="app" id="app">
+    <!-- rendered by JS -->
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   PinMe application
+   ---------------------------------------------------------------------
+   Persistence: the artifact runtime injects window.storage (key/value,
+   survives reloads). Personal scope is per-user; shared scope is visible
+   to every PinMe user, which is what makes cross-user matching real.
+   A safe in-memory fallback keeps the app usable if storage is absent.
+
+   Storage layout
+     personal  me                profile of the signed-in user
+     personal  swipes            { otherId: 'like'|'pass'|'super' }
+     shared    profile:<id>      public profile (everyone reads these)
+     shared    like:<from>:<to>  a like (mutual likes => a match)
+     shared    chat:<a__b>       array of { from, text, ts } messages
+     shared    demo:init         one-time seed flag
+   ===================================================================== */
+
+/* ---------------------------------------------------------------- storage layer */
+const store = (typeof window !== "undefined" && window.storage) ? window.storage : null;
+const mem = { personal: new Map(), shared: new Map() };
+
+async function sGet(key, shared = false) {
+  if (store) {
+    try { const r = await store.get(key, shared); return r ? JSON.parse(r.value) : null; }
+    catch (_) { return null; }            // missing keys throw → treat as null
+  }
+  const m = shared ? mem.shared : mem.personal;
+  return m.has(key) ? m.get(key) : null;
+}
+async function sSet(key, value, shared = false) {
+  if (store) {
+    try { await store.set(key, JSON.stringify(value), shared); return true; }
+    catch (e) { console.error("storage.set failed", key, e); return false; }
+  }
+  (shared ? mem.shared : mem.personal).set(key, value); return true;
+}
+async function sDel(key, shared = false) {
+  if (store) { try { await store.delete(key, shared); } catch (_) {} return; }
+  (shared ? mem.shared : mem.personal).delete(key);
+}
+async function sList(prefix, shared = false) {
+  if (store) { try { const r = await store.list(prefix, shared); return (r && r.keys) || []; } catch (_) { return []; } }
+  const m = shared ? mem.shared : mem.personal;
+  return [...m.keys()].filter(k => k.startsWith(prefix));
+}
+
+/* ---------------------------------------------------------------- utilities */
+const $ = sel => document.querySelector(sel);
+const app = $("#app");
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "u-" + Math.random().toString(36).slice(2) + Date.now());
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function hashStr(s) { let h = 0; s = String(s); for (let i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; } return Math.abs(h); }
+function matchKey(a, b) { return [a, b].sort().join("__"); }
+function initialsOf(name) { const p = String(name || "?").trim().split(/\s+/); return ((p[0]||"?")[0] + (p[1] ? p[1][0] : "")).toUpperCase(); }
+function relTime(ts) {
+  const d = (Date.now() - ts) / 1000;
+  if (d < 60) return "now";
+  if (d < 3600) return Math.floor(d / 60) + "m";
+  if (d < 86400) return Math.floor(d / 3600) + "h";
+  if (d < 604800) return Math.floor(d / 86400) + "d";
+  return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+const GRADIENTS = [
+  ["#FF7E5F", "#FF3D77"], ["#FF3D77", "#9D4EDD"], ["#FFB454", "#FF5068"],
+  ["#FFC3A0", "#6A3093"], ["#C840C8", "#5A4FCF"], ["#FFD66B", "#FF5E8A"],
+  ["#7AE0C3", "#3A8B8B"], ["#8AB6FF", "#5A4FCF"], ["#FF9A6C", "#B26BE0"], ["#5FD0A8", "#2F7C8E"]
+];
+function gradOf(id) { const g = GRADIENTS[hashStr(id) % GRADIENTS.length]; return `linear-gradient(150deg, ${g[0]}, ${g[1]})`; }
+function distanceFor(p) { if (p.distanceKm) return p.distanceKm; return 1 + (hashStr(p.userId || p.id) % 24); }
+
+/* avatar markup: real photo if present, else a styled gradient + initial + emoji */
+function avatarHTML(p, kind) {
+  // kind: 'fill' (card background), 'circle' (avatar element content)
+  if (p.photo) {
+    return kind === "fill"
+      ? `<div class="bg"><img src="${p.photo}" alt="" /></div>`
+      : `<img src="${p.photo}" alt="" />`;
+  }
+  const grad = gradOf(p.userId || p.id || p.name);
+  if (kind === "fill") {
+    return `<div class="ava-fill" style="background:${grad}"><div class="big-emoji">${escapeHtml(p.emoji || "✦")}</div></div>`;
+  }
+  return `<div style="position:absolute;inset:0;background:${grad};display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:800;font-size:.95em;">${escapeHtml(initialsOf(p.name))}</div>`
+       + `<span class="em" style="right:2px;bottom:0;">${escapeHtml(p.emoji || "")}</span>`;
+}
+
+/* ---------------------------------------------------------------- icons */
+const I = {
+  logo: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><path d="M12 12.6c-1-.85-2.9-2-2.9-3.45 0-.85.7-1.5 1.55-1.5.55 0 1 .27 1.35.68.35-.41.8-.68 1.35-.68.85 0 1.55.65 1.55 1.5 0 1.45-1.9 2.6-2.9 3.45z" fill="#fff"/></svg>`,
+  pinHeart: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><path d="M12 12.6c-1-.85-2.9-2-2.9-3.45 0-.85.7-1.5 1.55-1.5.55 0 1 .27 1.35.68.35-.41.8-.68 1.35-.68.85 0 1.55.65 1.55 1.5 0 1.45-1.9 2.6-2.9 3.45z" fill="#fff"/></svg>`,
+  heart: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.7-4.4-9.3-8.7C1 9.4 2.5 6 6 6c2 0 3.3 1.2 4 2.3C10.7 7.2 12 6 14 6c3.5 0 5 3.4 3.3 6.3C18.7 16.6 12 21 12 21z"/></svg>`,
+  heartOutline: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.2-4-8.6-8C2 9.5 3.3 7 6 7c1.8 0 3.1 1.1 3.8 2.1C10.5 8.1 11.8 7 13.6 7 16.3 7 17.6 9.5 16 12c-2 4-8 8-8 8z"/></svg>`,
+  pin: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>`,
+  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.9 6.1 6.1.1-4.9 3.7 1.8 6.2L12 14.9l-5 3.7 1.8-6.2L4 8.7l6.1-.1z"/></svg>`,
+  compass: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor" stroke="none"/></svg>`,
+  chat: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 01-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1121 11.5z"/></svg>`,
+  user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>`,
+  send: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4L21 12 3.4 3.6 3 10l12 2-12 2z"/></svg>`,
+  back: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>`,
+  chevR: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 00-3-3L5 17v3z"/></svg>`,
+  bolt: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>`,
+  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>`,
+  logout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2v-2M9 12h12m0 0l-3-3m3 3l-3 3"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>`
+};
+
+/* ---------------------------------------------------------------- demo data
+   A spread of profiles across orientations so any user has people to meet.
+   autoMatch:true profiles pin you back instantly and open the conversation,
+   so the app demonstrates matching + chat even with a single real user. */
+const INTERESTS = ["Afrobeats","Hiking","Photography","Cooking","Travel","Coffee","Books","Gym","Movies","Gaming","Dancing","Foodie","Dogs","Cats","Art","Live music","Tech","Wine","Running","Yoga","Football","Fashion","Karaoke","Brunch"];
+
+const DEMO = [
+  { id:"demo-amara", name:"Amara", age:27, gender:"woman", interestedIn:["man"], city:"Lekki, Lagos", distanceKm:3, emoji:"🎧",
+    bio:"Strong jollof opinions. Looking for someone who loses a board game gracefully.", interests:["Afrobeats","Hiking","Photography"], autoMatch:true,
+    opener:"Okay, first things first — jollof or fried rice? Choose wisely 😄" },
+  { id:"demo-kemi", name:"Kemi", age:24, gender:"woman", interestedIn:["man"], city:"Yaba, Lagos", distanceKm:7, emoji:"☕",
+    bio:"Med student running on caffeine and optimism. Take me dancing.", interests:["Dancing","Coffee","Movies"], autoMatch:false },
+  { id:"demo-lola", name:"Lola", age:27, gender:"woman", interestedIn:["man"], city:"Ikeja, Lagos", distanceKm:11, emoji:"📷",
+    bio:"Photographer chasing golden hour. I'll make you pose, you'll like it.", interests:["Photography","Travel","Coffee"], autoMatch:true,
+    opener:"Golden hour's in 20 mins — quick, describe your perfect first date." },
+  { id:"demo-bisi", name:"Bisi", age:28, gender:"woman", interestedIn:["man"], city:"VI, Lagos", distanceKm:5, emoji:"🎶",
+    bio:"Lawyer by day, live-music chaser by night. Bring snacks and good stories.", interests:["Live music","Wine","Foodie"], autoMatch:true,
+    opener:"Two truths and a lie. Go — I'm very good at this game." },
+  { id:"demo-nneka", name:"Nneka", age:26, gender:"woman", interestedIn:["man","woman"], city:"Surulere, Lagos", distanceKm:9, emoji:"🌿",
+    bio:"Plant mum of 14. Notices your bookshelf before your face, sorry.", interests:["Books","Art","Yoga"], autoMatch:false },
+  { id:"demo-tobi", name:"Tobi", age:29, gender:"man", interestedIn:["woman"], city:"Lekki, Lagos", distanceKm:4, emoji:"🥁",
+    bio:"Engineer by day, terrible drummer by night. I know where the best suya is.", interests:["Tech","Live music","Foodie"], autoMatch:true,
+    opener:"Your profile made me laugh. What's the most fun you've had this week?" },
+  { id:"demo-ife", name:"Ife", age:25, gender:"man", interestedIn:["woman"], city:"Maryland, Lagos", distanceKm:13, emoji:"🏃",
+    bio:"Marathoner, jollof loyalist, bad at texting but great in person.", interests:["Running","Foodie","Movies"], autoMatch:true,
+    opener:"Bad texter, fair warning. So — coffee this week instead?" },
+  { id:"demo-emeka", name:"Emeka", age:30, gender:"man", interestedIn:["woman"], city:"Ikoyi, Lagos", distanceKm:6, emoji:"📚",
+    bio:"Architect. Quiet weekends, loud opinions about buildings.", interests:["Art","Books","Coffee"], autoMatch:false },
+  { id:"demo-gbenga", name:"Gbenga", age:27, gender:"man", interestedIn:["woman","man"], city:"Gbagada, Lagos", distanceKm:8, emoji:"🎮",
+    bio:"Designer, dog person, founder of zero successful startups (so far).", interests:["Gaming","Dogs","Tech"], autoMatch:true,
+    opener:"Dog tax required before this goes further 🐶 show me yours." },
+  { id:"demo-zainab", name:"Zainab", age:26, gender:"woman", interestedIn:["woman"], city:"Yaba, Lagos", distanceKm:10, emoji:"🌱",
+    bio:"Architect who notices light before people. Plant mum, book hoarder.", interests:["Art","Books","Yoga"], autoMatch:true,
+    opener:"How many plants have you killed this year — honestly? No judgment." },
+  { id:"demo-funke", name:"Funke", age:30, gender:"woman", interestedIn:["woman"], city:"Ikeja, Lagos", distanceKm:12, emoji:"🎤",
+    bio:"Argues for fun. Wine, weekend trips, very loud karaoke.", interests:["Travel","Wine","Karaoke"], autoMatch:false },
+  { id:"demo-tola", name:"Tola", age:29, gender:"woman", interestedIn:["woman"], city:"Lekki, Lagos", distanceKm:5, emoji:"🍷",
+    bio:"Soft-spoken until the karaoke mic appears. Then it's over for you.", interests:["Karaoke","Wine","Dancing"], autoMatch:true,
+    opener:"Pick our karaoke duet. Get it right and you're in." },
+  { id:"demo-david", name:"David", age:31, gender:"man", interestedIn:["man"], city:"VI, Lagos", distanceKm:7, emoji:"🍳",
+    bio:"Chef. I'll feed you well and steal your fries anyway. Sunday market regular.", interests:["Cooking","Foodie","Travel"], autoMatch:true,
+    opener:"I cook, you wash up? Kidding. Mostly. What's your comfort meal?" },
+  { id:"demo-chidi", name:"Chidi", age:32, gender:"man", interestedIn:["man"], city:"Ikoyi, Lagos", distanceKm:9, emoji:"🥾",
+    bio:"Doctor, weekend hiker, devoted to small dogs and big breakfasts.", interests:["Hiking","Brunch","Dogs"], autoMatch:true,
+    opener:"Brunch is a personality trait. What's your order?" },
+  { id:"demo-uche", name:"Uche", age:31, gender:"man", interestedIn:["man"], city:"Surulere, Lagos", distanceKm:14, emoji:"⚽",
+    bio:"Footballer's heart, accountant's job. Five-a-side every Saturday.", interests:["Football","Gym","Foodie"], autoMatch:false },
+  { id:"demo-sam", name:"Sam", age:28, gender:"nonbinary", interestedIn:["man","woman","nonbinary"], city:"Lekki, Lagos", distanceKm:4, emoji:"🐕",
+    bio:"Designer, dog person, taco evangelist. Let's go somewhere with a patio.", interests:["Art","Dogs","Foodie"], autoMatch:true,
+    opener:"Tacos or pizza for a first date? This is a serious compatibility test." }
+];
+
+/* ---------------------------------------------------------------- app state */
+const state = {
+  view: "loading",
+  param: null,
+  me: null,
+  swipes: {},
+  feed: [],
+  matches: [],          // [{ profile, at, lastMsg, lastTs, unread }]
+  draft: { gender: null, interestedIn: null, interests: [], photo: null, emoji: "✦" },
+  poll: null
+};
+
+/* ---------------------------------------------------------------- data ops */
+async function seedDemos() {
+  const done = await sGet("demo:init", true);
+  if (done) return;
+  for (const d of DEMO) {
+    await sSet("profile:" + d.id, {
+      userId: d.id, name: d.name, age: d.age, gender: d.gender, interestedIn: d.interestedIn,
+      city: d.city, distanceKm: d.distanceKm, bio: d.bio, interests: d.interests,
+      emoji: d.emoji, isDemo: true, autoMatch: d.autoMatch, opener: d.opener || null
+    }, true);
+  }
+  await sSet("demo:init", true, true);
+}
+
+async function listProfiles() {
+  const keys = await sList("profile:", true);
+  const out = [];
+  for (const k of keys) { const p = await sGet(k, true); if (p && p.userId) out.push(p); }
+  return out;
+}
+
+function mutuallyCompatible(me, p) {
+  const meWantsThem = (me.interestedIn || []).includes(p.gender);
+  const theyWantMe = (p.interestedIn || []).includes(me.gender);
+  return meWantsThem && theyWantMe;
+}
+
+async function buildFeed() {
+  const profiles = await listProfiles();
+  state.swipes = (await sGet("swipes", false)) || {};
+  const list = profiles.filter(p =>
+    p.userId !== state.me.userId &&
+    !state.swipes[p.userId] &&
+    mutuallyCompatible(state.me, p)
+  );
+  // stable-ish shuffle seeded by my id so order is consistent within a session
+  list.sort((a, b) => (hashStr(state.me.userId + a.userId) % 1000) - (hashStr(state.me.userId + b.userId) % 1000));
+  state.feed = list;
+}
+
+async function refreshMatches() {
+  const likeKeys = await sList("like:" + state.me.userId + ":", true);
+  const result = [];
+  for (const k of likeKeys) {
+    const them = k.split(":")[2];
+    if (!them) continue;
+    const back = await sGet("like:" + them + ":" + state.me.userId, true);
+    if (!back) continue;                       // not mutual yet
+    const profile = await sGet("profile:" + them, true);
+    if (!profile) continue;
+    const chat = (await sGet("chat:" + matchKey(state.me.userId, them), true)) || [];
+    const last = chat[chat.length - 1];
+    const lastSeen = state.me._seen && state.me._seen[them] ? state.me._seen[them] : 0;
+    const unread = chat.some(m => m.from === them && m.ts > lastSeen);
+    result.push({
+      profile, at: typeof back === "number" ? back : Date.now(),
+      lastMsg: last ? last.text : null, lastTs: last ? last.ts : (typeof back === "number" ? back : Date.now()),
+      lastFrom: last ? last.from : null, unread, msgCount: chat.length
+    });
+  }
+  result.sort((a, b) => b.lastTs - a.lastTs);
+  state.matches = result;
+}
+
+async function recordSwipe(p, kind) {
+  state.swipes[p.userId] = kind;
+  await sSet("swipes", state.swipes, false);
+  await sSet("like:" + state.me.userId + ":" + p.userId, Date.now(), true) && void 0;
+  if (kind === "pass") { await sSet("like:" + state.me.userId + ":" + p.userId, "pass", true); return false; }
+
+  let matched = false;
+  if (p.isDemo && (p.autoMatch || kind === "super")) {
+    await sSet("like:" + p.userId + ":" + state.me.userId, Date.now(), true);   // they pin back
+    matched = true;
+  } else {
+    const back = await sGet("like:" + p.userId + ":" + state.me.userId, true);
+    if (back && back !== "pass") matched = true;
+  }
+  if (matched) {
+    if (p.isDemo && p.opener) {
+      const key = "chat:" + matchKey(state.me.userId, p.userId);
+      const existing = (await sGet(key, true)) || [];
+      if (existing.length === 0) {
+        await sSet(key, [{ from: p.userId, text: p.opener, ts: Date.now() }], true);
+      }
+    }
+  }
+  return matched;
+}
+
+/* ---------------------------------------------------------------- render router */
+function render() {
+  if (state.poll) { clearInterval(state.poll); state.poll = null; }
+  switch (state.view) {
+    case "loading":   return renderLoading();
+    case "onboard":   return renderOnboard();
+    case "discover":  return renderShell(renderDiscover, "discover");
+    case "likes":     return renderShell(renderLikes, "likes");
+    case "chats":     return renderShell(renderChats, "chats");
+    case "profile":   return renderShell(renderProfile, "profile");
+    case "edit":      return renderEdit();
+    case "chat":      return renderConversation(state.param);
+  }
+}
+function go(view, param) { state.view = view; state.param = param || null; render(); }
+
+function renderLoading() {
+  app.innerHTML = `<div style="flex:1;display:grid;place-items:center;">
+    <div class="pin-drop"><span class="pin">${I.logo}</span><span class="ring"></span></div></div>`;
+}
+
+/* nav + screen shell -------------------------------------------------------- */
+function renderShell(inner, tab) {
+  const unreadTotal = state.matches.filter(m => m.unread).length;
+  app.innerHTML = `<div class="screen" id="screen"></div>
+    <nav class="nav">
+      ${navBtn("discover", I.compass, "Discover", tab)}
+      ${navBtn("likes", I.heartOutline, "Likes", tab)}
+      ${navBtn("chats", I.chat, "Chats", tab, unreadTotal)}
+      ${navBtn("profile", I.user, "Profile", tab)}
+    </nav>`;
+  app.querySelectorAll(".nav button").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+  inner($("#screen"));
+}
+function navBtn(key, icon, label, active, badge) {
+  return `<button data-go="${key}" aria-current="${active === key}">
+    ${icon}<span>${label}</span>${badge ? `<span class="badge">${badge}</span>` : ""}</button>`;
+}
+
+/* =====================================================================
+   ONBOARDING
+   ===================================================================== */
+function renderOnboard() {
+  const d = state.draft;
+  app.innerHTML = `
+  <div class="onboard">
+    <div class="scroll">
+      <div class="hero">
+        <div class="grid"></div>
+        <div class="pin-drop"><span class="pin">${I.logo}</span><span class="ring"></span></div>
+        <h1>Find your people, <span class="grad">nearby</span></h1>
+        <p>PinMe drops a pin on the people you click with. Build your profile and start meeting them.</p>
+      </div>
+
+      <div class="field">
+        <label>Your photo <span class="hint">— optional, but it helps</span></label>
+        <div class="photo-pick">
+          <div class="preview" id="prev" style="background:${gradOf("seed-" + (d.emoji||""))}">
+            ${d.photo ? `<img src="${d.photo}" alt=""/>` : `<span style="font-family:var(--font-display);font-weight:800;color:#fff;font-size:30px;" id="prevInit">?</span>`}
+            <span class="ava-emoji">${escapeHtml(d.emoji)}</span>
+          </div>
+          <div class="meta">
+            <button class="btn-ghost" id="pickPhoto">${d.photo ? "Change photo" : "Add a photo"}</button>
+            ${d.photo ? `<button class="btn-ghost" id="rmPhoto" style="margin-top:8px;">Remove</button>` : `<p class="hint" style="margin:8px 0 0;">No photo? Pick a vibe below.</p>`}
+            <input type="file" id="fileInp" accept="image/*" hidden />
+          </div>
+        </div>
+        ${d.photo ? "" : `<div class="chips" id="emojiPick" style="margin-top:12px;">
+          ${["✦","🎧","📷","🌿","🍳","🥾","🎮","🎤","☕","🐕","📚","🎶"].map(e =>
+            `<button class="chip" type="button" data-emoji="${e}" aria-pressed="${d.emoji===e}">${e}</button>`).join("")}
+        </div>`}
+      </div>
+
+      <div class="field"><label for="nm">Name</label>
+        <input class="input" id="nm" maxlength="24" placeholder="What should people call you?" value="${escapeHtml(d.name || "")}" /></div>
+
+      <div class="field"><label for="ag">Age <span class="hint">— 18 or older</span></label>
+        <input class="input" id="ag" type="number" min="18" max="99" inputmode="numeric" placeholder="18+" value="${d.age || ""}" /></div>
+
+      <div class="field"><label>I am a</label>
+        <div class="seg" id="gender">
+          ${seg("man","Man",d.gender)}${seg("woman","Woman",d.gender)}${seg("nonbinary","Nonbinary",d.gender)}
+        </div></div>
+
+      <div class="field"><label>Show me</label>
+        <div class="seg" id="seek">
+          ${seg("men","Men",d.interestedIn&&d.interestedIn.join())}
+          ${seg("women","Women",d.interestedIn&&d.interestedIn.join())}
+          ${seg("everyone","Everyone",d.interestedIn&&d.interestedIn.join())}
+        </div></div>
+
+      <div class="field"><label for="ct">Where you are</label>
+        <input class="input" id="ct" maxlength="40" placeholder="e.g. Lekki, Lagos" value="${escapeHtml(d.city || "")}" /></div>
+
+      <div class="field"><label for="bio">A line about you <span class="hint">— make it yours</span></label>
+        <textarea class="input" id="bio" maxlength="160" placeholder="Strong jollof opinions and a soft spot for golden hour…">${escapeHtml(d.bio || "")}</textarea></div>
+
+      <div class="field"><label>Your interests <span class="hint">— pick up to 5</span></label>
+        <div class="chips" id="interests">
+          ${INTERESTS.map(t => `<button class="chip" type="button" data-int="${escapeHtml(t)}" aria-pressed="${d.interests.includes(t)}">${escapeHtml(t)}</button>`).join("")}
+        </div></div>
+
+      <div class="formerr" id="err"></div>
+      <button class="btn-primary" id="create" style="margin-top:6px;">Create my profile</button>
+      <p class="foot-note">PinMe is for adults (18+). By continuing you confirm you meet your local minimum age to date.</p>
+    </div>
+  </div>`;
+
+  wireOnboard();
+}
+function seg(val, label, current) {
+  const pressed = current ? current.split(",").includes(val) || current === val : false;
+  return `<button type="button" data-val="${val}" aria-pressed="${pressed}">${label}</button>`;
+}
+
+function updatePrevInitial() {
+  const el = document.getElementById("prevInit");
+  if (el) el.textContent = initialsOf($("#nm") ? $("#nm").value : "") || "?";
+}
+
+function wireOnboard() {
+  const d = state.draft;
+  // photo
+  $("#pickPhoto").addEventListener("click", () => $("#fileInp").click());
+  if ($("#rmPhoto")) $("#rmPhoto").addEventListener("click", () => { d.photo = null; renderOnboard(); });
+  $("#fileInp").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    resizeImage(f, 520, 0.72).then(dataUrl => { d.photo = dataUrl; renderOnboard(); })
+      .catch(() => toast("Couldn't read that image"));
+  });
+  if ($("#emojiPick")) $("#emojiPick").querySelectorAll(".chip").forEach(c =>
+    c.addEventListener("click", () => { d.emoji = c.dataset.emoji; renderOnboard(); }));
+  // name -> initial
+  $("#nm").addEventListener("input", updatePrevInitial); updatePrevInitial();
+  // segmented
+  $("#gender").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    d.gender = b.dataset.val; $("#gender").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  }));
+  $("#seek").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    const v = b.dataset.val;
+    d.interestedIn = v === "men" ? ["man"] : v === "women" ? ["woman"] : ["man","woman","nonbinary"];
+    $("#seek").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  }));
+  // interests (cap 5)
+  $("#interests").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    const t = c.dataset.int; const i = d.interests.indexOf(t);
+    if (i >= 0) d.interests.splice(i, 1);
+    else { if (d.interests.length >= 5) { toast("Up to 5 interests"); return; } d.interests.push(t); }
+    c.setAttribute("aria-pressed", d.interests.includes(t));
+  }));
+  // submit
+  $("#create").addEventListener("click", submitOnboard);
+}
+
+async function submitOnboard() {
+  const d = state.draft, err = $("#err");
+  d.name = $("#nm").value.trim();
+  d.age = parseInt($("#ag").value, 10);
+  d.city = $("#ct").value.trim();
+  d.bio = $("#bio").value.trim();
+  err.textContent = "";
+  if (!d.name) return (err.textContent = "Add a name so people know who they're meeting.");
+  if (!d.age || d.age < 18) return (err.textContent = "You need to be 18 or older to use PinMe.");
+  if (d.age > 99) return (err.textContent = "Please enter a real age.");
+  if (!d.gender) return (err.textContent = "Tell us how you identify.");
+  if (!d.interestedIn) return (err.textContent = "Choose who you'd like to see.");
+  if (!d.city) return (err.textContent = "Add your area — PinMe is all about who's nearby.");
+  if (d.interests.length === 0) return (err.textContent = "Pick at least one interest.");
+
+  const me = {
+    userId: uid(), name: d.name, age: d.age, gender: d.gender, interestedIn: d.interestedIn,
+    city: d.city, bio: d.bio, interests: d.interests.slice(), emoji: d.photo ? "" : d.emoji,
+    photo: d.photo || null, createdAt: Date.now(), _seen: {}
+  };
+  $("#create").disabled = true; $("#create").textContent = "Setting up…";
+  await sSet("me", me, false);
+  await sSet("profile:" + me.userId, {
+    userId: me.userId, name: me.name, age: me.age, gender: me.gender, interestedIn: me.interestedIn,
+    city: me.city, bio: me.bio, interests: me.interests, emoji: me.emoji, photo: me.photo, isDemo: false
+  }, true);
+  state.me = me;
+  await buildFeed();
+  await refreshMatches();
+  go("discover");
+  toast("Welcome to PinMe 👋");
+}
+
+function resizeImage(file, max, quality) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width: w, height: h } = img;
+        if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+        else if (h > max) { w = Math.round(w * max / h); h = max; }
+        const c = document.createElement("canvas"); c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        res(c.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = rej; img.src = fr.result;
+    };
+    fr.onerror = rej; fr.readAsDataURL(file);
+  });
+}
+
+/* =====================================================================
+   DISCOVER
+   ===================================================================== */
+function renderDiscover(root) {
+  root.innerHTML = `
+    <div class="topbar">
+      <div class="brand"><span class="logo">${I.logo}</span><span class="word">Pin<b>Me</b></span></div>
+      <button class="iconbtn" id="toProfile" aria-label="Your profile">${I.user}</button>
+    </div>
+    <div class="deck-wrap">
+      <div class="deck" id="deck"></div>
+      <div class="actions">
+        <button class="fab pass" id="bPass" aria-label="Pass">${I.close}</button>
+        <button class="fab like" id="bLike" aria-label="Pin ${escapeHtml(currentTop() ? currentTop().name : "")}">${I.pinHeart}</button>
+        <button class="fab super" id="bSuper" aria-label="Super pin">${I.star}</button>
+      </div>
+    </div>`;
+  $("#toProfile").addEventListener("click", () => go("profile"));
+  paintDeck();
+  $("#bPass").addEventListener("click", () => act("pass"));
+  $("#bLike").addEventListener("click", () => act("like"));
+  $("#bSuper").addEventListener("click", () => act("super"));
+  installKeys();
+}
+
+function currentTop() { return state.feed[0] || null; }
+
+function paintDeck() {
+  const deck = $("#deck");
+  if (!deck) return;
+  const enable = !!currentTop();
+  ["bPass","bLike","bSuper"].forEach(id => { const b = $("#" + id); if (b) b.disabled = !enable; });
+
+  if (state.feed.length === 0) {
+    deck.innerHTML = `<div class="deck-empty">
+      <div class="ic">${I.pin}</div>
+      <h3>That's everyone for now</h3>
+      <p>You've seen all the people nearby who match what you're looking for. New folks pin in all the time — check back soon.</p>
+      <button class="btn-sm" id="resetSwipes">Start over</button>
+    </div>`;
+    const r = $("#resetSwipes");
+    if (r) r.addEventListener("click", async () => {
+      state.swipes = {}; await sSet("swipes", {}, false);
+      // also clear my like records so feed is fresh (keeps mutual chats intact in storage)
+      const mine = await sList("like:" + state.me.userId + ":", true);
+      for (const k of mine) await sDel(k, true);
+      await buildFeed(); paintDeck(); toast("Fresh start — happy pinning");
+    });
+    return;
+  }
+  // render up to 3 stacked cards (top is index 0)
+  const top3 = state.feed.slice(0, 3);
+  deck.innerHTML = top3.map((p, i) => cardHTML(p, i)).join("");
+  const topEl = deck.querySelector('.card[data-i="0"]');
+  if (topEl) installDrag(topEl);
+}
+
+function cardHTML(p, i) {
+  const scale = 1 - i * 0.05, ty = i * 14;
+  const z = 10 - i;
+  const dist = distanceFor(p);
+  return `<div class="card" data-i="${i}" data-id="${escapeHtml(p.userId)}"
+    style="z-index:${z}; transform:translateY(${ty}px) scale(${scale}); ${i ? "opacity:" + (1 - i * 0.15) + ";" : ""}">
+    ${avatarHTML(p, "fill")}
+    <div class="active-now"><i></i> Active today</div>
+    <span class="stamp like">PINNED</span>
+    <span class="stamp nope">PASS</span>
+    <span class="stamp super">SUPER</span>
+    <div class="scrim"></div>
+    <div class="info">
+      <div class="nameline"><h3>${escapeHtml(p.name)}</h3><span class="age">${escapeHtml(String(p.age))}</span>
+        ${p.isDemo ? "" : '<span class="ver-dot" title="On PinMe"></span>'}</div>
+      <div class="dist">${I.pin}${dist} km away · ${escapeHtml(p.city || "Nearby")}</div>
+      ${p.bio ? `<p class="bio">${escapeHtml(p.bio)}</p>` : ""}
+      <div class="tags">${(p.interests || []).slice(0, 4).map(t => `<span>${escapeHtml(t)}</span>`).join("")}</div>
+    </div>
+  </div>`;
+}
+
+/* drag / swipe physics */
+function installDrag(el) {
+  let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false, pid = null;
+  const like = el.querySelector(".stamp.like"), nope = el.querySelector(".stamp.nope"), sup = el.querySelector(".stamp.super");
+  const W = el.offsetWidth || 360;
+
+  const down = e => {
+    if (e.button != null && e.button !== 0) return;
+    dragging = true; pid = e.pointerId;
+    startX = e.clientX; startY = e.clientY; dx = dy = 0;
+    el.setPointerCapture && el.setPointerCapture(pid);
+    el.style.transition = "none";
+  };
+  const move = e => {
+    if (!dragging) return;
+    dx = e.clientX - startX; dy = e.clientY - startY;
+    const rot = dx / 18;
+    el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+    const upSwipe = dy < -60 && Math.abs(dy) > Math.abs(dx);
+    like.style.opacity = !upSwipe && dx > 0 ? Math.min(1, dx / 90) : 0;
+    nope.style.opacity = !upSwipe && dx < 0 ? Math.min(1, -dx / 90) : 0;
+    sup.style.opacity = upSwipe ? Math.min(1, -dy / 90) : 0;
+  };
+  const up = () => {
+    if (!dragging) return; dragging = false;
+    el.style.transition = "transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s";
+    if (dy < -110 && Math.abs(dy) > Math.abs(dx)) return flyOut("super");
+    if (dx > 110) return flyOut("like");
+    if (dx < -110) return flyOut("pass");
+    el.style.transform = ""; like.style.opacity = nope.style.opacity = sup.style.opacity = 0;
+  };
+  function flyOut(kind) {
+    const offX = kind === "like" ? W * 1.6 : kind === "pass" ? -W * 1.6 : 0;
+    const offY = kind === "super" ? -900 : dy;
+    el.style.transform = `translate(${offX}px, ${offY}px) rotate(${offX / 18}deg)`;
+    el.style.opacity = "0";
+    setTimeout(() => commit(kind), 220);
+  }
+  el.addEventListener("pointerdown", down);
+  el.addEventListener("pointermove", move);
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+}
+
+let acting = false;
+function act(kind) {
+  // button-triggered: animate the top card then commit
+  const el = $('.card[data-i="0"]');
+  if (!el || acting) return;
+  const W = el.offsetWidth || 360;
+  el.style.transition = "transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s";
+  const offX = kind === "like" ? W * 1.6 : kind === "pass" ? -W * 1.6 : 0;
+  const offY = kind === "super" ? -900 : -40;
+  const st = el.querySelector(kind === "like" ? ".stamp.like" : kind === "pass" ? ".stamp.nope" : ".stamp.super");
+  if (st) st.style.opacity = 1;
+  el.style.transform = `translate(${offX}px, ${offY}px) rotate(${offX / 18}deg)`;
+  el.style.opacity = "0";
+  setTimeout(() => commit(kind), 220);
+}
+
+async function commit(kind) {
+  if (acting) return; acting = true;
+  const p = state.feed.shift();
+  if (!p) { acting = false; paintDeck(); return; }
+  let matched = false;
+  try { matched = await recordSwipe(p, kind); } catch (e) { console.error(e); }
+  paintDeck();
+  acting = false;
+  if (matched) { await refreshMatches(); showMatch(p); }
+}
+
+function installKeys() {
+  document.onkeydown = e => {
+    if (state.view !== "discover") return;
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === "ArrowLeft") act("pass");
+    else if (e.key === "ArrowRight") act("like");
+    else if (e.key === "ArrowUp") act("super");
+  };
+}
+
+/* match celebration -------------------------------------------------------- */
+function showMatch(p) {
+  const wrap = document.createElement("div");
+  wrap.className = "modal-bg";
+  wrap.innerHTML = `
+    <div class="match-modal">
+      <div class="spark"></div>
+      <div class="avas">
+        <div class="ava s56" style="width:92px;height:92px;">${avatarHTML(state.me, "circle")}</div>
+        <div class="joint">${I.heart}</div>
+        <div class="ava s56" style="width:92px;height:92px;">${avatarHTML(p, "circle")}</div>
+      </div>
+      <h2>It's a match!</h2>
+      <p>You and ${escapeHtml(p.name)} pinned each other. Say something — a real opener beats “hey”.</p>
+      <button class="btn-solid" id="mMsg">Send a message</button>
+      <button class="btn-line" id="mKeep">Keep pinning</button>
+    </div>`;
+  app.appendChild(wrap);
+  // confetti
+  const colors = ["#FF7E5F","#FF3D77","#C840C8","#FFB454","#5FD0A8","#fff"];
+  for (let i = 0; i < 26; i++) {
+    const c = document.createElement("span");
+    c.className = "confetti";
+    c.style.left = Math.random() * 100 + "%";
+    c.style.background = colors[i % colors.length];
+    c.style.animationDuration = (1.4 + Math.random() * 1.2) + "s";
+    c.style.animationDelay = (Math.random() * 0.3) + "s";
+    c.style.transform = `rotate(${Math.random() * 360}deg)`;
+    wrap.querySelector(".match-modal").appendChild(c);
+  }
+  wrap.querySelector("#mKeep").addEventListener("click", () => wrap.remove());
+  wrap.querySelector("#mMsg").addEventListener("click", () => { wrap.remove(); go("chat", p.userId); });
+  wrap.addEventListener("click", e => { if (e.target === wrap) wrap.remove(); });
+}
+
+/* =====================================================================
+   LIKES / MATCHES
+   ===================================================================== */
+function renderLikes(root) {
+  const ms = state.matches;
+  root.innerHTML = `<div class="topbar"><h2>Your pins</h2></div><div class="scroll" id="sc"></div>`;
+  const sc = $("#sc");
+  if (ms.length === 0) {
+    sc.innerHTML = emptyState(I.heartOutline, "No matches yet",
+      "When you and someone both pin each other, they'll show up here. Head to Discover and start pinning people you like.",
+      "Discover people", "discover");
+    bindEmpty(sc); return;
+  }
+  sc.innerHTML = `<div class="pad">
+    <div class="section-h"><h3>It's mutual</h3><span class="count">${ms.length}</span></div>
+    <div class="grid2">${ms.map(m => mcardHTML(m)).join("")}</div></div>`;
+  sc.querySelectorAll(".mcard").forEach(c => c.addEventListener("click", () => go("chat", c.dataset.id)));
+}
+function mcardHTML(m) {
+  const p = m.profile;
+  return `<div class="mcard" data-id="${escapeHtml(p.userId)}">
+    ${avatarHTML(p, "fill")}<div class="scrim"></div>
+    ${m.msgCount === 0 ? '<span class="newtag">New</span>' : ""}
+    <div class="label"><b>${escapeHtml(p.name)}, ${escapeHtml(String(p.age))}</b>
+      <div class="sub">${m.lastMsg ? escapeHtml(m.lastMsg.slice(0, 28)) : "Say hi 👋"}</div></div>
+  </div>`;
+}
+
+/* =====================================================================
+   CHATS list
+   ===================================================================== */
+function renderChats(root) {
+  const ms = state.matches;
+  const fresh = ms.filter(m => m.msgCount === 0);
+  const convos = ms.filter(m => m.msgCount > 0);
+  root.innerHTML = `<div class="topbar"><h2>Chats</h2></div><div class="scroll" id="sc"></div>`;
+  const sc = $("#sc");
+
+  if (ms.length === 0) {
+    sc.innerHTML = emptyState(I.chat, "No conversations yet",
+      "Match with someone and your chats live here. A thoughtful first message goes a long way.",
+      "Find matches", "discover");
+    bindEmpty(sc); return;
+  }
+  let html = "";
+  if (fresh.length) {
+    html += `<div class="newmatches"><div class="section-h" style="margin:14px 0 4px;"><h3>New matches</h3><span class="count">${fresh.length}</span></div>
+      <div class="rail">${fresh.map(m => `
+        <div class="nm" data-id="${escapeHtml(m.profile.userId)}">
+          <div class="ava s56">${avatarHTML(m.profile, "circle")}</div>
+          <span>${escapeHtml(m.profile.name)}</span></div>`).join("")}</div></div>
+      <div class="divider"></div>`;
+  }
+  if (convos.length) {
+    html += `<div style="padding-top:4px;">` + convos.map(m => {
+      const mine = m.lastFrom === state.me.userId;
+      return `<div class="chat-row ${m.unread ? "unread" : ""}" data-id="${escapeHtml(m.profile.userId)}">
+        <div class="ava s56">${avatarHTML(m.profile, "circle")}</div>
+        <div class="body">
+          <div class="top"><b>${escapeHtml(m.profile.name)}</b><time>${relTime(m.lastTs)}</time></div>
+          <div class="prev">${mine ? "You: " : ""}${escapeHtml(m.lastMsg)}</div>
+        </div>${m.unread ? '<span class="unread-dot"></span>' : ""}</div>`;
+    }).join("") + `</div>`;
+  } else {
+    html += `<p class="muted" style="text-align:center;padding:30px 40px;font-size:14px;">No messages yet — break the ice with one of your new matches above.</p>`;
+  }
+  sc.innerHTML = html;
+  sc.querySelectorAll("[data-id]").forEach(el => el.addEventListener("click", () => go("chat", el.dataset.id)));
+}
+
+/* =====================================================================
+   CONVERSATION
+   ===================================================================== */
+async function renderConversation(otherId) {
+  const profile = await sGet("profile:" + otherId, true);
+  if (!profile) { toast("Couldn't open that chat"); return go("chats"); }
+  const key = "chat:" + matchKey(state.me.userId, otherId);
+
+  app.innerHTML = `<div class="conv">
+      <div class="conv-head">
+        <button class="back" id="back" aria-label="Back to chats">${I.back}</button>
+        <div class="ava s44">${avatarHTML(profile, "circle")}</div>
+        <div class="who"><b>${escapeHtml(profile.name)}</b><span class="st">Active today</span></div>
+      </div>
+      <div class="conv-scroll" id="msgs"></div>
+      <div class="composer">
+        <textarea id="inp" rows="1" placeholder="Message ${escapeHtml(profile.name)}…" maxlength="800"></textarea>
+        <button class="send" id="send" disabled aria-label="Send">${I.send}</button>
+      </div>
+    </div>`;
+
+  $("#back").addEventListener("click", async () => { await markSeen(otherId); await refreshMatches(); go("chats"); });
+
+  const inp = $("#inp"), send = $("#send");
+  inp.addEventListener("input", () => {
+    send.disabled = inp.value.trim().length === 0;
+    inp.style.height = "auto"; inp.style.height = Math.min(inp.scrollHeight, 110) + "px";
+  });
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  send.addEventListener("click", sendMessage);
+
+  async function paint(scroll) {
+    const msgs = (await sGet(key, true)) || [];
+    const box = $("#msgs"); if (!box) return;
+    box.innerHTML =
+      `<div class="match-banner">
+        <div class="ava s56">${avatarHTML(profile, "circle")}</div>
+        You matched with <b>${escapeHtml(profile.name)}</b>${profile.city ? " · " + escapeHtml(profile.city) : ""}
+      </div>` +
+      msgs.map(m => {
+        const mine = m.from === state.me.userId;
+        return `<div class="bubble ${mine ? "me" : "them"}">${escapeHtml(m.text)}<span class="t">${relTime(m.ts)}</span></div>`;
+      }).join("");
+    if (scroll) box.scrollTop = box.scrollHeight;
+  }
+  await paint(true);
+  await markSeen(otherId);
+
+  async function sendMessage() {
+    const text = inp.value.trim(); if (!text) return;
+    inp.value = ""; send.disabled = true; inp.style.height = "auto";
+    const msgs = (await sGet(key, true)) || [];
+    msgs.push({ from: state.me.userId, text, ts: Date.now() });
+    await sSet(key, msgs, true);
+    await paint(true);
+    // demo profiles reply (so a solo user has a living conversation)
+    if (profile.isDemo) scheduleReply(profile, key, paint);
+  }
+
+  // poll for incoming messages (real cross-user chats) while open
+  state.poll = setInterval(async () => {
+    if (state.view !== "chat") return;
+    await paint(false);
+    const box = $("#msgs");
+    if (box && box.scrollHeight - box.scrollTop - box.clientHeight < 80) box.scrollTop = box.scrollHeight;
+  }, 4000);
+}
+
+const DEMO_REPLIES = [
+  "Haha okay, you're funny — tell me more.",
+  "Love that. So what does a perfect Saturday look like for you?",
+  "Ooh, good answer. We should grab coffee and keep this going.",
+  "You're trouble, I can already tell 😄",
+  "Okay I'm sold. When are you free this week?",
+  "Right answer. I'd have walked away otherwise 😅",
+  "Noted. I'm holding you to that, by the way."
+];
+const replyIdx = {};
+function scheduleReply(profile, key, paint) {
+  const box = $("#msgs"); if (!box) return;
+  const typing = document.createElement("div");
+  typing.className = "typing"; typing.innerHTML = "<i></i><i></i><i></i>";
+  box.appendChild(typing); box.scrollTop = box.scrollHeight;
+  const delay = 1100 + Math.random() * 1200;
+  setTimeout(async () => {
+    if (state.view !== "chat") return;
+    typing.remove();
+    const i = (replyIdx[profile.userId] = (replyIdx[profile.userId] || 0) + 1);
+    const text = DEMO_REPLIES[(hashStr(profile.userId) + i) % DEMO_REPLIES.length];
+    const msgs = (await sGet(key, true)) || [];
+    msgs.push({ from: profile.userId, text, ts: Date.now() });
+    await sSet(key, msgs, true);
+    await paint(true);
+  }, delay);
+}
+
+async function markSeen(otherId) {
+  const key = "chat:" + matchKey(state.me.userId, otherId);
+  const msgs = (await sGet(key, true)) || [];
+  const last = msgs.length ? msgs[msgs.length - 1].ts : Date.now();
+  state.me._seen = state.me._seen || {};
+  state.me._seen[otherId] = last;
+  await sSet("me", state.me, false);
+}
+
+/* =====================================================================
+   PROFILE
+   ===================================================================== */
+function renderProfile(root) {
+  const me = state.me;
+  const pins = Object.values(state.swipes).filter(v => v === "like" || v === "super").length;
+  const matchN = state.matches.length;
+  const labelSeek = JSON.stringify(me.interestedIn) === JSON.stringify(["man","woman","nonbinary"])
+    ? "everyone" : me.interestedIn[0] === "man" ? "men" : me.interestedIn[0] === "woman" ? "women" : "everyone";
+  root.innerHTML = `
+    <div class="topbar"><h2>Profile</h2>
+      <button class="iconbtn" id="edit" aria-label="Edit profile">${I.edit}</button></div>
+    <div class="scroll">
+      <div class="prof-card">
+        <div class="ava s56" style="width:108px;height:108px;">${avatarHTML(me, "circle")}</div>
+        <h2>${escapeHtml(me.name)}, ${escapeHtml(String(me.age))}</h2>
+        <div class="loc">${I.pin}${escapeHtml(me.city)}</div>
+        ${me.bio ? `<p class="bio">${escapeHtml(me.bio)}</p>` : ""}
+      </div>
+      <div class="stats">
+        <div class="stat"><b>${pins}</b><span>Pins sent</span></div>
+        <div class="stat"><b>${matchN}</b><span>Matches</span></div>
+        <div class="stat"><b>${me.interests.length}</b><span>Interests</span></div>
+      </div>
+      <div class="prof-tags">
+        <span class="eyebrow">Showing me ${escapeHtml(labelSeek)}</span>
+        <div class="chips" style="margin-top:10px;">
+          ${me.interests.map(t => `<button class="chip" aria-pressed="true" disabled>${escapeHtml(t)}</button>`).join("")}
+        </div>
+      </div>
+      <div style="margin-top:14px;border-top:1px solid var(--line);">
+        ${rowBtn("editProfile", I.edit, "Edit profile", "Photo, bio, interests")}
+        ${rowBtn("boost", I.bolt, "Boost your profile", "Be one of the top pins nearby")}
+        ${rowBtn("safety", I.shield, "Safety & privacy", "Tips for meeting people safely")}
+        ${rowBtn("signout", I.logout, "Reset profile", "Clear this profile from this device", true)}
+      </div>
+      <p class="foot-note" style="padding:8px 28px 24px;">PinMe stores your profile so other people on this app can find you. Reset clears your profile from this device.</p>
+    </div>`;
+  $("#edit").addEventListener("click", () => go("edit"));
+  root.querySelector('[data-row="editProfile"]').addEventListener("click", () => go("edit"));
+  root.querySelector('[data-row="boost"]').addEventListener("click", () => toast("✨ You're boosted for the next hour"));
+  root.querySelector('[data-row="safety"]').addEventListener("click", showSafety);
+  root.querySelector('[data-row="signout"]').addEventListener("click", confirmReset);
+}
+function rowBtn(key, icon, title, sub, danger) {
+  return `<button class="row-btn ${danger ? "danger" : ""}" data-row="${key}">
+    <span class="ic">${icon}</span><span class="lbl"><b>${title}</b><span>${sub}</span></span>
+    <span class="chev">${I.chevR}</span></button>`;
+}
+
+function showSafety() {
+  const wrap = document.createElement("div");
+  wrap.className = "modal-bg";
+  wrap.innerHTML = `<div class="match-modal" style="background:var(--surface);color:var(--ink);text-align:left;padding:28px;">
+    <h2 style="font-size:24px;color:var(--ink);text-align:center;">Meet safely</h2>
+    <ul style="margin:14px 0 22px;padding-left:18px;line-height:1.7;color:var(--ink-2);font-size:14.5px;">
+      <li>Meet first dates in a public place.</li>
+      <li>Tell a friend where you're going and when.</li>
+      <li>Make your own way there and back.</li>
+      <li>Keep the conversation on PinMe until you trust them.</li>
+    </ul>
+    <button class="btn-solid" id="ok" style="background:var(--grad-sunset);color:#fff;">Got it</button>
+  </div>`;
+  app.appendChild(wrap);
+  wrap.querySelector("#ok").addEventListener("click", () => wrap.remove());
+  wrap.addEventListener("click", e => { if (e.target === wrap) wrap.remove(); });
+}
+
+function confirmReset() {
+  const wrap = document.createElement("div");
+  wrap.className = "modal-bg";
+  wrap.innerHTML = `<div class="match-modal" style="background:var(--surface);color:var(--ink);padding:30px;">
+    <h2 style="font-size:24px;color:var(--ink);">Reset profile?</h2>
+    <p style="color:var(--ink-2);">This clears your PinMe profile and matches from this device so you can start fresh. It can't be undone.</p>
+    <button class="btn-solid" id="yes" style="background:var(--coral);color:#fff;">Yes, reset</button>
+    <button class="btn-line" id="no" style="background:var(--surface-2);color:var(--ink);">Cancel</button>
+  </div>`;
+  app.appendChild(wrap);
+  wrap.querySelector("#no").addEventListener("click", () => wrap.remove());
+  wrap.querySelector("#yes").addEventListener("click", async () => {
+    const id = state.me.userId;
+    await sDel("me", false); await sDel("swipes", false);
+    await sDel("profile:" + id, true);
+    const mine = await sList("like:" + id + ":", true);
+    for (const k of mine) await sDel(k, true);
+    state.me = null; state.swipes = {}; state.matches = []; state.feed = [];
+    state.draft = { gender: null, interestedIn: null, interests: [], photo: null, emoji: "✦" };
+    wrap.remove(); go("onboard");
+  });
+}
+
+/* =====================================================================
+   EDIT PROFILE
+   ===================================================================== */
+function renderEdit() {
+  const me = state.me;
+  const seekVal = JSON.stringify(me.interestedIn) === JSON.stringify(["man","woman","nonbinary"])
+    ? "everyone" : me.interestedIn[0] === "man" ? "men" : "women";
+  const e = state.edit = state.edit || {
+    photo: me.photo, emoji: me.emoji || "✦", interests: me.interests.slice(),
+    gender: me.gender, seek: seekVal
+  };
+  app.innerHTML = `<div class="onboard">
+    <div class="topbar"><button class="iconbtn" id="back">${I.back}</button><h2 style="font-size:22px;">Edit profile</h2><span style="width:42px;"></span></div>
+    <div class="scroll">
+      <div class="field">
+        <div class="photo-pick">
+          <div class="preview" style="background:${gradOf("seed-" + (e.emoji||""))}">
+            ${e.photo ? `<img src="${e.photo}" alt=""/>` : `<span style="font-family:var(--font-display);font-weight:800;color:#fff;font-size:30px;">${initialsOf(me.name)}</span>`}
+            <span class="ava-emoji">${escapeHtml(e.emoji)}</span>
+          </div>
+          <div class="meta">
+            <button class="btn-ghost" id="pick">${e.photo ? "Change photo" : "Add photo"}</button>
+            ${e.photo ? `<button class="btn-ghost" id="rm" style="margin-top:8px;">Remove</button>` : ""}
+            <input type="file" id="file" accept="image/*" hidden />
+          </div>
+        </div>
+        ${e.photo ? "" : `<div class="chips" id="em" style="margin-top:12px;">
+          ${["✦","🎧","📷","🌿","🍳","🥾","🎮","🎤","☕","🐕","📚","🎶"].map(x =>
+            `<button class="chip" data-e="${x}" aria-pressed="${e.emoji===x}">${x}</button>`).join("")}</div>`}
+      </div>
+      <div class="field"><label for="nm">Name</label><input class="input" id="nm" maxlength="24" value="${escapeHtml(me.name)}"/></div>
+      <div class="field"><label for="ag">Age</label><input class="input" id="ag" type="number" min="18" max="99" value="${me.age}"/></div>
+      <div class="field"><label>I am a</label><div class="seg" id="gd">
+        ${seg("man","Man",e.gender)}${seg("woman","Woman",e.gender)}${seg("nonbinary","Nonbinary",e.gender)}</div></div>
+      <div class="field"><label>Show me</label><div class="seg" id="sk">
+        ${seg("men","Men",e.seek)}${seg("women","Women",e.seek)}${seg("everyone","Everyone",e.seek)}</div></div>
+      <div class="field"><label for="ct">Where you are</label><input class="input" id="ct" maxlength="40" value="${escapeHtml(me.city)}"/></div>
+      <div class="field"><label for="bio">About you</label><textarea class="input" id="bio" maxlength="160">${escapeHtml(me.bio||"")}</textarea></div>
+      <div class="field"><label>Interests <span class="hint">— up to 5</span></label><div class="chips" id="ints">
+        ${INTERESTS.map(t => `<button class="chip" data-int="${escapeHtml(t)}" aria-pressed="${e.interests.includes(t)}">${escapeHtml(t)}</button>`).join("")}</div></div>
+      <div class="formerr" id="err"></div>
+      <button class="btn-primary" id="save" style="margin:6px 0 24px;">Save changes</button>
+    </div></div>`;
+
+  $("#back").addEventListener("click", () => { state.edit = null; go("profile"); });
+  $("#pick").addEventListener("click", () => $("#file").click());
+  if ($("#rm")) $("#rm").addEventListener("click", () => { e.photo = null; renderEdit(); });
+  $("#file").addEventListener("change", ev => {
+    const f = ev.target.files && ev.target.files[0]; if (!f) return;
+    resizeImage(f, 520, 0.72).then(d => { e.photo = d; renderEdit(); }).catch(() => toast("Couldn't read that image"));
+  });
+  if ($("#em")) $("#em").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { e.emoji = c.dataset.e; renderEdit(); }));
+  $("#gd").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { e.gender = b.dataset.val; $("#gd").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); }));
+  $("#sk").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { e.seek = b.dataset.val; $("#sk").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); }));
+  $("#ints").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    const t = c.dataset.int, i = e.interests.indexOf(t);
+    if (i >= 0) e.interests.splice(i, 1);
+    else { if (e.interests.length >= 5) { toast("Up to 5 interests"); return; } e.interests.push(t); }
+    c.setAttribute("aria-pressed", e.interests.includes(t));
+  }));
+  $("#save").addEventListener("click", saveEdit);
+}
+
+async function saveEdit() {
+  const me = state.me, e = state.edit, err = $("#err");
+  const name = $("#nm").value.trim(), age = parseInt($("#ag").value, 10), city = $("#ct").value.trim(), bio = $("#bio").value.trim();
+  if (!name) return (err.textContent = "Name can't be empty.");
+  if (!age || age < 18 || age > 99) return (err.textContent = "Enter a valid age (18+).");
+  if (!city) return (err.textContent = "Add your area.");
+  if (!e.interests.length) return (err.textContent = "Pick at least one interest.");
+  me.name = name; me.age = age; me.city = city; me.bio = bio;
+  me.gender = e.gender; me.interests = e.interests.slice();
+  me.interestedIn = e.seek === "men" ? ["man"] : e.seek === "women" ? ["woman"] : ["man","woman","nonbinary"];
+  me.photo = e.photo || null; me.emoji = e.photo ? "" : e.emoji;
+  await sSet("me", me, false);
+  await sSet("profile:" + me.userId, {
+    userId: me.userId, name: me.name, age: me.age, gender: me.gender, interestedIn: me.interestedIn,
+    city: me.city, bio: me.bio, interests: me.interests, emoji: me.emoji, photo: me.photo, isDemo: false
+  }, true);
+  state.edit = null;
+  await buildFeed();
+  go("profile"); toast("Profile updated");
+}
+
+/* =====================================================================
+   shared bits
+   ===================================================================== */
+function emptyState(icon, title, body, btnLabel, btnGo) {
+  return `<div class="empty"><div class="ic">${icon}</div><h3>${title}</h3><p>${body}</p>
+    <button class="btn-sm" data-go="${btnGo}">${btnLabel}</button></div>`;
+}
+function bindEmpty(root) { const b = root.querySelector("[data-go]"); if (b) b.addEventListener("click", () => go(b.dataset.go)); }
+
+let toastT;
+function toast(msg) {
+  let t = $(".toast");
+  if (!t) { t = document.createElement("div"); t.className = "toast"; app.appendChild(t); }
+  t.textContent = msg;
+  requestAnimationFrame(() => t.classList.add("show"));
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* =====================================================================
+   boot
+   ===================================================================== */
+(async function init() {
+  renderLoading();
+  try {
+    await seedDemos();
+    const me = await sGet("me", false);
+    if (!me) { go("onboard"); return; }
+    state.me = me; state.me._seen = state.me._seen || {};
+    await buildFeed();
+    await refreshMatches();
+    go("discover");
+    if (!store) toast("Heads up: running without persistent storage");
+  } catch (e) {
+    console.error("init failed", e);
+    go("onboard");
+  }
+})();
+</script>
+</body>
+</html>
